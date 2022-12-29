@@ -1,0 +1,272 @@
+"""
+Launcher Rractor 2 :
+<<ok>>
+- Créations d'une interface graphique avec liste des voitures et circuits.
+- Rechercher la liste des voitures dans le répertoire du jeu. "C:/Program Files (x86)/Steam/steamapps/common/rFactor 2/Installed/Vehicule"
+- Génération de la liste des voitures installées
+- Choix de la voiture est mise dans une variable (Car Select)
+- Rechercher la liste des circuits dans le répertoire du jeu. "C:/Program Files (x86)/Steam/steamapps/common/rFactor 2/Installed/Locations"
+- Génération de la liste des circuits installés
+- Choix du circuit et mise dans une variable (TrackSelect)
+- Rechercher la voiture sélectionnée dans le fichier "all vehicles.ini", pour récupérer dans une variable (chainechemincar), la ligne "file="chemin_de_la_voiture". Rep (C:/Program Files (x86)/Steam/steamapps/common/rFactor 2/UserData/player/)
+- Remplacer la ligne "SinglePlayerVehicle=" avec la nouvelle valeur.
+- Génération du chemin du circuit en *.AIW & *.SCN.
+- Rechercher et mise en variable (CheTrack) la signature du circuit "Scene Signature":"", dans le fichier *.mft ligne "Signature=". "C:/Program Files (x86)/Steam/steamapps/common/rFactor 2/Installed/Locations/non_du_circuite/version/"
+- Recherche et remplacement de la chaine de caractere :
+    "AI Database File":(CheTrack + "//" + TrackSelect + ".AIW",")
+    "Scene Description":(TrackSelect)),
+    "Scene File":(CheTrack + "//" + TrackSelect + ".SCN",")
+    "Scene Signature":(Signature)
+    - Ecriture des valeurs trouvé :
+    "AI Database File":(CheTrack + "//" + TrackSelect + ".AIW",")
+    "Scene Description":(TrackSelect)),
+    "Scene File":(CheTrack + "//" + TrackSelect + ".SCN",")
+    "Scene Signature":(Signature)
+- Lancement du jeu !
+<<SUITE>>
+- Choix du Skin de la voiture sélectionnée
+"""
+#coding:utf-8
+
+#Importation des modules
+from tkinter import *
+from tkinter import ttk
+import tkinter as tk
+import os.path
+import glob
+import os
+import re
+
+
+#déclaration des variadles
+CherFactor2 = "G:/Mon Drive/Python/rFactor 2"
+CheVehicule = "/Installed/Vehicles"
+CheLoctions = "/Installed/Locations"
+Cheplayer = "/UserData/player"
+fichiercch = "All Tracks & Cars.cch"
+fichierplayerjson = "player.JSON"
+combo_liste_type_track = [""]
+LineTrouvee = ""
+Line = ""
+
+#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<déclaration des fonctions>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#boucle de l'ecture
+def boucle_lecture_fichier(valeur, chemin):
+    print("control VAR ! " + valeur)
+    # Ouvrir le fichier en lecture seule
+    file = open(CherFactor2 + chemin, "r")
+    # utilisez readline() pour lire la première ligne
+    line = file.readline()
+
+    while line:
+        #print("<<<<<Boucle Line>>>>>")
+        #print("control VARCAR avant var verif ! " + valeur)
+        Verif(line, valeur)
+        #print("control VARCAR après var verif ! " + valeur)
+        #print(line)
+        # utilisez readline() pour lire la ligne suivante
+        line = file.readline()
+    file.close()
+
+
+def remplaceligne(chemin, chaine, chaineatrouvee):
+    print('remplaceligne' + chemin)
+    print('remplaceligne' + chaine)
+    print('remplaceligne' + chaineatrouvee)
+    buffer = ""
+    file = open(CherFactor2 + chemin, "r")  # ouverture du fichier à modifier
+    for line in file:
+        if line.find(chaineatrouvee, 0, len(line)) != -1:
+            line = chaine
+        buffer += line 
+    file.close()
+    file = open(CherFactor2 + chemin, "w")  # ouverture du fichier à modifier
+    file.write(buffer)
+    file.close()
+
+#Fonction de verification de ligne avec une chaine de caractère
+def Verif(line, valeur):
+    #print("#####fonction Verif#####")
+    global LineTrouvee
+    if valeur in line :
+        print ('Sous-chaîne trouvée' )
+        LineTrouvee = line
+        print("ICI: " + LineTrouvee)
+    #else:
+        #print('Sous-chaîne non trouvée')
+
+def lance_rfactor2():
+    print("#####fonction lance_rfactor2#####")
+    """
+    Mise en variable des séléctions combobox
+    récuperation de la valeyur combos
+    récuperation du numéro d'index
+    retour les variables en mémoire
+    """
+    #Variable Global
+    global valeur
+    global index
+    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<vehicule>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    #combo_car.bind("<<ComboboxSelected>>")
+    valeur = combo_car.get()
+    index = combo_car.current()
+    chainenomcar = '"' + valeur + '"'
+    #print("index: " + str(index) + " valeur vehicule : " + valeur)
+    #print("control VARCAR ! " + valeur)
+    chemin = "/UserData/player/all_vehicles.ini"
+    boucle_lecture_fichier(valeur, chemin)
+    #print("Chaine isolée : " + chaineisole)
+    chainechemincar = LineTrouvee.replace('File=', '')
+    ########Prepare les variable fonction remplaceligne#########
+    chaine = "SinglePlayerVehicle=" + str(chainechemincar)
+    chemin = Cheplayer + "/" + fichiercch
+    chaineatrouvee = "SinglePlayerVehicle="
+    remplaceligne(chemin, chaine, chaineatrouvee)
+    #################Fin fonction remplaceligne#################
+    ########Prepare les variable fonction remplaceligne#########
+    chaine = "SinglePlayerFilter=" + str(chainenomcar) + "\n"
+    chemin = Cheplayer + "/" + fichiercch
+    chaineatrouvee = "SinglePlayerFilter="
+    remplaceligne(chemin, chaine, chaineatrouvee)
+    #################Fin fonction remplaceligne#################
+    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<tipe Circuit>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    #combo_type_track.bind("<<ComboboxSelected>>")
+    select_type_track = combo_type_track.get()
+    print("mon type de circuit : " + select_type_track)
+    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Circuit>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    #combo_track.bind("<<ComboboxSelected>>")
+    valeur = combo_track.get()
+    index = combo_track.current()
+    chainenomtrack = '"' + valeur + '"'
+    #print("index: " + str(index) + " valeur circuit: " + valeur)
+    print("control VARTRACK ! " + valeur)
+    #Recherche du fichier *mft pour reccuperer les données du circuit (signature, *.AIW, *.SCN)
+    filepath = glob.glob(CherFactor2 + CheLoctions + '/' + valeur + '/' + '**/*.mft', recursive=True)
+    chainecheminfichiermft = '"' + str(filepath[len(filepath) - 1]) + '"'
+    chainecheminfichiermft = chainecheminfichiermft.replace('"', "")
+    chainecheminfichiermft = chainecheminfichiermft.replace("""\\""", '/')
+    longueurdebut = len(CherFactor2)
+    longueurfin = len(valeur)
+    longueurchemin = len(chainecheminfichiermft)
+    chainecheminfichiermft = (chainecheminfichiermft[longueurdebut:])
+    chemin = chainecheminfichiermft
+    #longueurfin = longueurchemin - longueurfin
+    chainecheminfichiermft = (chainecheminfichiermft[:len(chainecheminfichiermft)-longueurfin-4])
+    chainechetrack = chainecheminfichiermft
+    valeur = "Signature="
+    print("chemin pour la boucle lecture : " + chemin)
+    print("nom pour la boucle lecture : " + valeur)
+    boucle_lecture_fichier(valeur, chemin)
+    chainesignature = LineTrouvee.replace('Signature=', '')
+    chainesignature = chainesignature.replace('\n', '')
+
+    
+    print("Chemin du circuit selectionné : " + CherFactor2 + chainechetrack + select_type_track)
+    Chainechemintrack = CherFactor2 + chainechetrack + select_type_track
+    ChainecheminAIW = Chainechemintrack.replace('.mas', '.AIW')
+    ChainecheminSCN = Chainechemintrack.replace('.mas', '.SCN')
+    ChainecheminAIW = ChainecheminAIW.replace('/', """\\\\""")
+    ChainecheminSCN = ChainecheminSCN.replace('/', """\\\\""")
+
+    ########Prepare les variable fonction remplaceligne#########
+    chaine = '    "AI Database File":"' + str(ChainecheminAIW) + '",' + "\n"
+    chemin = Cheplayer + "/" + fichierplayerjson
+    chaineatrouvee = '"AI Database File"'
+    remplaceligne(chemin, chaine, chaineatrouvee)
+    #################Fin fonction remplaceligne#################
+    ########Prepare les variable fonction remplaceligne#########
+    chaine = '    "Scene Description":' + str(chainenomtrack) + ',' + "\n"
+    chemin = Cheplayer + "/" + fichierplayerjson
+    chaineatrouvee = '"Scene Description"'
+    remplaceligne(chemin, chaine, chaineatrouvee)
+    #################Fin fonction remplaceligne#################
+    ########Prepare les variable fonction remplaceligne#########
+    chaine = '    "Scene File":"' + str(ChainecheminSCN) + '",' + "\n"
+    chemin = Cheplayer + "/" + fichierplayerjson
+    chaineatrouvee = '"Scene File"'
+    remplaceligne(chemin, chaine, chaineatrouvee)
+    #################Fin fonction remplaceligne#################
+    ########Prepare les variable fonction remplaceligne#########
+    chaine = '    "Scene Signature":"' + chainesignature + '"' + "\n"
+    chemin = Cheplayer + "/" + fichierplayerjson
+    chaineatrouvee = '"Scene Signature"'
+    remplaceligne(chemin, chaine, chaineatrouvee)
+    #################Fin fonction remplaceligne#################
+
+    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Chaine récupéré>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    print('Chaine pour copie dans fichier *.cch (Ligne-6 : SinglePlayerVehicle=) : ' + chainechemincar)
+    print('Chaine pour copie dans fichier *.cch (Ligne-7 : SinglePlayerFilter=) : ' + chainenomcar)
+    print('Chaine pour copie dans fichier *.JSON (Ligne-762 : "AI Database File":) : ' + ChainecheminAIW)
+    print('Chaine pour copie dans fichier *.JSON (Ligne-767 : "Scene Description":) : ' + chainenomtrack)
+    print('Chaine pour copie dans fichier *.JSON (Ligne-768 : "Scene File":) : ' + ChainecheminSCN)
+    print('Chaine pour copie dans fichier *.JSON (Ligne-769 : "Scene Signature") : ' + chainesignature)
+
+#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Gestion de l'interface>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#creation de la fenetre Launcher Rf2
+FnMain = tk.Tk()
+FnMain.geometry('350x150')
+frm_FnMain = tk.Frame(FnMain)
+frm_FnMain.pack()
+
+#fonction creation et récupération de la liste des types du circuits selectionné
+def combo_onselect(select_liste_track):
+    '''
+    - Recuperer la valeur selectionné dans la combo_track
+    - rechercher et liste les chemins des fichier *.mas 
+    - Filtrer les fichier *.txt, *MAPS, *GMT, *MAIN
+    '''
+    global select_track
+    select_track = combo_track.get()
+    combo_liste_type_track = glob.glob(CherFactor2 + CheLoctions + '/' + select_track + '/' + '**/*.mas', recursive=True)
+    select_liste_type_track = (os.listdir(CherFactor2 + CheLoctions + '/' + select_track))
+    select_liste_type_track = select_liste_type_track[-1]
+    select_liste_type_track = (os.listdir(CherFactor2 + CheLoctions + '/' + select_track + '/' + select_liste_type_track))
+    select_liste_type_track = [x for x in select_liste_type_track if x.endswith('.mas')] 
+    #Actualiser la liste de type de circuit se
+    combo_type_track["values"] = (select_liste_type_track)
+    print("ma liste type circuit: ", select_liste_type_track)
+
+
+
+
+
+#récupération de la liste des voiture
+combo_liste_car = (os.listdir(CherFactor2 + CheVehicule))
+select_liste_car = tk.StringVar(FnMain)
+select_liste_car.set(combo_liste_car[0])
+#récupération de la liste des circuits
+combo_liste_track = (os.listdir(CherFactor2 + CheLoctions))
+select_liste_track = tk.StringVar(FnMain)
+select_liste_track.set(combo_liste_track[0])
+#Ajout éléments listes déroulantes des voiture & des circuits
+combo_car = ttk.Combobox(FnMain, width=25)
+combo_track = ttk.Combobox(FnMain, width=25)
+combo_type_track = ttk.Combobox(FnMain, width=25)
+combo_car["values"] = (combo_liste_car)
+combo_track["values"] = (combo_liste_track)
+combo_type_track["values"] = (combo_liste_type_track)
+combo_car.place(x='155', y='10')
+combo_track.place(x='155', y='50')
+combo_type_track.place(x='155', y='80')
+
+
+#Gestion des elements
+combo_track.bind("<<ComboboxSelected>>", combo_onselect)
+
+#Créer les boutons 
+BtLancer = Button(FnMain, text="Lancer Rf2", bg='blue', fg='white', command=lance_rfactor2) 
+BtLancer.place(x='275', y='117')
+
+#Créer les Objets dans la fenètre 
+LibCars = Label(FnMain, text="Choix voiture !", font=("Verdana", 10, "italic bold"), fg="green", bg="silver")
+LibTrack = Label(FnMain, text="Choix circuit !", font=("Verdana", 10, "italic bold"), fg="green", bg="silver")
+LibTypeTrack = Label(FnMain, text="Choix type circuit !", font=("Verdana", 10, "italic bold"), fg="green", bg="silver")
+LibCars.place(x='15', y='10')
+LibTrack.place(x='15', y='50')
+LibTypeTrack.place(x='15', y='80')
+
+#affichage de l'interface
+FnMain.title("Launcher Rfactor 2")
+FnMain['bg'] = "silver"
+FnMain.resizable(height=False,width=False)
+FnMain.mainloop()
